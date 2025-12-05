@@ -1,1 +1,727 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" type="text/css" href="bootstrap3.min.css"><link rel="stylesheet" type="text/css" href="index.css"><script type="text/javascript" src="jquery-1.10.2.min.js"></script><script type="text/javascript" src="bootstrap3.min.js"></script><script type="text/javascript" src="index.js"></script></head><body><div id="timer">????</div><div id="incense-track"><div id="incense-line"></div></div><a class="btn btn-info fbtn" id="min60" onclick="adjust(-60)">-60</a><a class="btn btn-info fbtn" id="min10" onclick="adjust(-10)">-10</a><a class="btn btn-primary" id="toggle" onclick="toggle()">RUN</a><a class="btn btn-warning" id="reset" onclick="reset()">RESET</a><a class="btn btn-default" id="hide" onclick="show()">&#xd60;</a><a class="btn btn-info fbtn" id="add10" onclick="adjust(10)">+10</a><a class="btn btn-info fbtn" id="add60" onclick="adjust(60)">+60</a><a class="btn btn-success fbtn" id="def10" onclick="adjust(0,10)">10 sec</a><a class="btn btn-success fbtn" id="def30" onclick="adjust(0,30)">30 sec</a><a class="btn btn-success fbtn" id="def60" onclick="adjust(0,60)">1 min</a><a class="btn btn-success fbtn" id="def180" onclick="adjust(0,180)">3 min</a><a class="btn btn-success fbtn" id="def300" onclick="adjust(0,300)">5 min</a><a class="btn btn-success fbtn" id="def600" onclick="adjust(0,600)">10 min</a><a class="btn btn-success fbtn" id="def900" onclick="adjust(0,900)">15 min</a><a class="btn btn-success fbtn" id="def1800" onclick="adjust(0,1800)">30 min</a></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Focus Power Timer</title>
+  <style>
+    :root {
+      --night-top: #0a1a2f;
+      --night-bottom: #0c223d;
+      --city: #0f243c;
+      --window: #1f3b5a;
+      --accent: #d7e8ff;
+      --tree-green: linear-gradient(180deg, #0f4d3b 0%, #0b3529 100%);
+      --tree-dark: rgba(12, 36, 35, 0.4);
+      --light-dim: #5a6f74;
+      --light-bright: #f6ce66;
+      --light-pink: #ff8fb1;
+      --light-green: #8ef3c5;
+      --light-blue: #7ac7ff;
+      --star-dim: #7a8a94;
+      --star-bright: #ffd86b;
+      --billboard: #10253f;
+      --led-off: #192d44;
+      --led-on: #77ffba;
+      --snow: rgba(255, 255, 255, 0.7);
+      --glow: 0 0 12px rgba(255, 255, 255, 0.7);
+      font-family: "Segoe UI", "Inter", system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(180deg, var(--night-top), var(--night-bottom));
+      color: #e7f0ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .page {
+      max-width: 1100px;
+      width: 100%;
+      background: rgba(10, 22, 40, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #f6f8ff;
+    }
+
+    .subtitle {
+      color: #9db5d6;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    label {
+      font-size: 14px;
+      color: #c9d9f2;
+    }
+
+    input[type="number"] {
+      width: 110px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.05);
+      color: #f5fbff;
+      font-size: 15px;
+      outline: none;
+      transition: border 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input[type="number"]:focus {
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 0 3px rgba(119, 255, 186, 0.18);
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      padding: 10px 16px;
+      border-radius: 10px;
+      color: #0a1525;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .start {
+      background: linear-gradient(120deg, #77ffba, #c3ffd6);
+      box-shadow: 0 10px 25px rgba(119, 255, 186, 0.2);
+    }
+
+    .pause {
+      background: linear-gradient(120deg, #ffc266, #ffd592);
+      box-shadow: 0 10px 25px rgba(255, 193, 102, 0.2);
+    }
+
+    .reset {
+      background: linear-gradient(120deg, #a9b8ff, #c5d0ff);
+      box-shadow: 0 10px 25px rgba(169, 184, 255, 0.2);
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
+
+    .status {
+      margin-left: auto;
+      font-weight: 600;
+      color: #cde7ff;
+      min-width: 180px;
+      text-align: right;
+    }
+
+    .scene {
+      position: relative;
+      height: 520px;
+      margin-top: 12px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(11, 26, 45, 0.65), rgba(12, 29, 52, 0.95));
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .sky-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(120, 180, 255, 0.08), transparent 45%),
+        radial-gradient(circle at 80% 15%, rgba(255, 210, 120, 0.12), transparent 35%);
+      pointer-events: none;
+    }
+
+    .snow, .snow::before, .snow::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(2px 2px at 20px 30px, var(--snow), transparent),
+        radial-gradient(1.5px 1.5px at 120px 80px, var(--snow), transparent),
+        radial-gradient(2px 2px at 320px 140px, var(--snow), transparent),
+        radial-gradient(1px 1px at 520px 30px, var(--snow), transparent),
+        radial-gradient(2px 2px at 760px 160px, var(--snow), transparent),
+        radial-gradient(1.5px 1.5px at 980px 110px, var(--snow), transparent);
+      animation: snow 14s linear infinite;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .snow::before {
+      animation-duration: 18s;
+      transform: translateY(-40px);
+      opacity: 0.28;
+    }
+
+    .snow::after {
+      animation-duration: 22s;
+      transform: translateY(-80px);
+      opacity: 0.22;
+    }
+
+    @keyframes snow {
+      0% { transform: translateY(-40px); }
+      100% { transform: translateY(40px); }
+    }
+
+    .ground {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 130px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.14));
+      backdrop-filter: blur(1px);
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.35) inset;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .city {
+      position: absolute;
+      bottom: 110px;
+      left: 0;
+      right: 0;
+      height: 220px;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      padding: 0 32px;
+    }
+
+    .building {
+      background: var(--city);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 6px 6px 2px 2px;
+      position: relative;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+    }
+
+    .building::after {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      background-image: linear-gradient(90deg, transparent 60%, rgba(255, 255, 255, 0.04) 60%),
+        linear-gradient(transparent 65%, rgba(255, 255, 255, 0.05) 65%);
+      background-size: 14px 10px;
+      opacity: 0.5;
+      mix-blend-mode: screen;
+    }
+
+    .building:nth-child(odd) {
+      height: 90%;
+      width: 120px;
+    }
+
+    .building:nth-child(even) {
+      height: 75%;
+      width: 90px;
+      opacity: 0.86;
+    }
+
+    .building.tall {
+      height: 100%;
+      width: 140px;
+    }
+
+    .billboard-wrapper {
+      position: absolute;
+      right: 70px;
+      bottom: 155px;
+      width: 200px;
+      height: 120px;
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 18px rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+    }
+
+    .billboard {
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 20% 20%, rgba(119, 255, 186, 0.05), transparent 45%),
+        var(--billboard);
+      border-radius: 6px;
+      border: 2px solid rgba(119, 255, 186, 0.4);
+      box-shadow: 0 0 20px rgba(119, 255, 186, 0.2);
+      padding: 10px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 6px;
+    }
+
+    .billboard .label {
+      text-transform: uppercase;
+      font-size: 12px;
+      color: rgba(200, 235, 255, 0.7);
+      letter-spacing: 1px;
+    }
+
+    #timerDisplay {
+      font-family: "Orbitron", "VT323", "Roboto Mono", monospace;
+      font-size: 42px;
+      color: var(--led-on);
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px rgba(119, 255, 186, 0.9), 0 0 18px rgba(119, 255, 186, 0.4);
+      background: var(--led-off);
+      border-radius: 6px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tree-area {
+      position: absolute;
+      left: 50%;
+      bottom: 45px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      width: 320px;
+      height: 360px;
+    }
+
+    .tree {
+      position: relative;
+      width: 220px;
+      height: 320px;
+      filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.35));
+    }
+
+    .tree::before,
+    .tree::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 240px;
+      height: 280px;
+      background: var(--tree-green);
+      filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.25));
+      clip-path: polygon(50% 0%, 100% 100%, 0 100%);
+      mask-image: linear-gradient(transparent 0%, rgba(0, 0, 0, 0.8) 25%, rgba(0, 0, 0, 1) 100%);
+    }
+
+    .tree::after {
+      width: 210px;
+      height: 260px;
+      bottom: 12px;
+      border: none;
+      background: linear-gradient(180deg, rgba(16, 83, 63, 0.55), rgba(12, 53, 40, 0.9));
+      clip-path: polygon(50% 0%, 100% 100%, 0 100%);
+      opacity: 0.7;
+      mix-blend-mode: screen;
+    }
+
+    .tree-shadow {
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 180px;
+      height: 20px;
+      background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.35), transparent 65%);
+      filter: blur(6px);
+      opacity: 0.6;
+    }
+
+    .trunk {
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 48px;
+      height: 36px;
+      background: linear-gradient(180deg, #5b3622, #3d2317);
+      border-radius: 4px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    }
+
+    .light-rows {
+      position: absolute;
+      inset: 30px 20px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      pointer-events: none;
+    }
+
+    .light-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .bulb {
+      width: 14px;
+      height: 14px;
+      background: var(--light-dim);
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.18);
+      transition: background 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease;
+      opacity: 0.75;
+    }
+
+    .bulb.lit {
+      background: var(--light-bright);
+      opacity: 1;
+      box-shadow: 0 0 10px rgba(246, 206, 102, 0.9), 0 0 18px rgba(255, 255, 255, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .tree.celebrate .bulb.lit {
+      animation: twinkle 1.8s ease-in-out infinite alternate;
+    }
+
+    .tree.celebrate .bulb[data-color="pink"].lit { background: var(--light-pink); }
+    .tree.celebrate .bulb[data-color="green"].lit { background: var(--light-green); }
+    .tree.celebrate .bulb[data-color="blue"].lit { background: var(--light-blue); }
+
+    @keyframes twinkle {
+      0% { box-shadow: 0 0 10px rgba(255, 255, 255, 0.7); opacity: 0.95; }
+      50% { box-shadow: 0 0 18px rgba(255, 255, 255, 0.95); opacity: 1; }
+      100% { box-shadow: 0 0 8px rgba(255, 255, 255, 0.6); opacity: 0.9; }
+    }
+
+    .star {
+      position: absolute;
+      top: -16px;
+      left: 50%;
+      transform: translateX(-50%) rotate(14deg);
+      width: 34px;
+      height: 34px;
+      background: radial-gradient(circle, rgba(255, 216, 107, 0.45), transparent 55%),
+        linear-gradient(120deg, rgba(255, 216, 107, 0.8), rgba(255, 184, 94, 0.8));
+      clip-path: polygon(50% 0%, 63% 35%, 100% 38%, 69% 60%, 79% 100%, 50% 77%, 21% 100%, 31% 60%, 0 38%, 37% 35%);
+      filter: drop-shadow(0 0 6px rgba(255, 216, 107, 0.4));
+      opacity: 0.35;
+      transition: opacity 0.5s ease, transform 0.5s ease, filter 0.5s ease;
+    }
+
+    .star.glow {
+      opacity: 1;
+      transform: translateX(-50%) rotate(0deg) scale(1.05);
+      animation: starPulse 2.4s ease-in-out infinite;
+      filter: drop-shadow(0 0 12px rgba(255, 216, 107, 0.8)) drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+    }
+
+    @keyframes starPulse {
+      0% { transform: translateX(-50%) scale(1); }
+      50% { transform: translateX(-50%) scale(1.12); }
+      100% { transform: translateX(-50%) scale(1); }
+    }
+
+    .message {
+      position: absolute;
+      bottom: 12px;
+      left: 24px;
+      padding: 10px 14px;
+      background: rgba(119, 255, 186, 0.12);
+      border: 1px solid rgba(119, 255, 186, 0.35);
+      border-radius: 10px;
+      color: #d8ffee;
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      pointer-events: none;
+    }
+
+    .message.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 800px) {
+      body { padding: 14px; }
+      .scene { height: 480px; }
+      .tree-area { width: 280px; }
+      .billboard-wrapper { right: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <h1>Focus Power Countdown</h1>
+        <p class="subtitle">Quiet winter night — your focus lights the city.</p>
+      </div>
+      <div class="controls">
+        <label for="minutesInput">Minutes</label>
+        <input type="number" id="minutesInput" min="1" max="180" value="25" />
+        <div class="buttons">
+          <button class="start" id="startBtn">Start Focus</button>
+          <button class="pause" id="pauseBtn" disabled>Pause</button>
+          <button class="reset" id="resetBtn">Reset</button>
+        </div>
+        <div class="status" id="statusText">Set your focus time</div>
+      </div>
+    </header>
+
+    <div class="scene">
+      <div class="sky-overlay"></div>
+      <div class="snow"></div>
+
+      <div class="city">
+        <div class="building"></div>
+        <div class="building tall"></div>
+        <div class="building"></div>
+        <div class="building tall"></div>
+        <div class="building"></div>
+      </div>
+
+      <div class="billboard-wrapper">
+        <div class="billboard">
+          <div class="label">Power Meter</div>
+          <div id="timerDisplay">00:00</div>
+        </div>
+      </div>
+
+      <div class="tree-area">
+        <div class="tree" id="tree">
+          <div class="star" id="star"></div>
+          <div class="light-rows" id="lights">
+            <div class="light-row">
+              <span class="bulb" data-color="blue"></span>
+              <span class="bulb" data-color="pink"></span>
+              <span class="bulb" data-color="green"></span>
+              <span class="bulb" data-color="blue"></span>
+            </div>
+            <div class="light-row">
+              <span class="bulb" data-color="pink"></span>
+              <span class="bulb" data-color="green"></span>
+              <span class="bulb" data-color="blue"></span>
+              <span class="bulb" data-color="pink"></span>
+              <span class="bulb" data-color="green"></span>
+            </div>
+            <div class="light-row">
+              <span class="bulb" data-color="green"></span>
+              <span class="bulb" data-color="blue"></span>
+              <span class="bulb" data-color="pink"></span>
+              <span class="bulb" data-color="green"></span>
+              <span class="bulb" data-color="blue"></span>
+              <span class="bulb" data-color="pink"></span>
+            </div>
+            <div class="light-row">
+              <span class="bulb" data-color="blue"></span>
+              <span class="bulb" data-color="pink"></span>
+              <span class="bulb" data-color="green"></span>
+              <span class="bulb" data-color="blue"></span>
+              <span class="bulb" data-color="pink"></span>
+              <span class="bulb" data-color="green"></span>
+              <span class="bulb" data-color="blue"></span>
+            </div>
+            <div class="light-row">
+              <span class="bulb" data-color="pink"></span>
+              <span class="bulb" data-color="blue"></span>
+              <span class="bulb" data-color="green"></span>
+              <span class="bulb" data-color="pink"></span>
+              <span class="bulb" data-color="blue"></span>
+              <span class="bulb" data-color="green"></span>
+              <span class="bulb" data-color="pink"></span>
+              <span class="bulb" data-color="blue"></span>
+            </div>
+          </div>
+          <div class="trunk"></div>
+          <div class="tree-shadow"></div>
+        </div>
+      </div>
+
+      <div class="ground"></div>
+      <div class="message" id="messageBox">You powered up the city!</div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const minutesInput = document.getElementById('minutesInput');
+      const startBtn = document.getElementById('startBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const timerDisplay = document.getElementById('timerDisplay');
+      const statusText = document.getElementById('statusText');
+      const tree = document.getElementById('tree');
+      const star = document.getElementById('star');
+      const messageBox = document.getElementById('messageBox');
+      const bulbs = Array.from(document.querySelectorAll('.bulb'));
+
+      let totalSeconds = 0;
+      let remainingSeconds = 0;
+      let timerId = null;
+      let running = false;
+
+      const formatTime = (seconds) => {
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+      };
+
+      const updateDisplay = () => {
+        timerDisplay.textContent = formatTime(Math.max(remainingSeconds, 0));
+      };
+
+      const setStatus = (text) => {
+        statusText.textContent = text;
+      };
+
+      const updateLights = () => {
+        if (!totalSeconds) {
+          bulbs.forEach((b) => b.classList.remove('lit'));
+          tree.classList.remove('celebrate');
+          star.classList.remove('glow');
+          return;
+        }
+
+        const progress = Math.min(1, (totalSeconds - remainingSeconds) / totalSeconds);
+        const litCount = Math.floor(progress * bulbs.length);
+
+        bulbs.forEach((bulb, idx) => {
+          if (idx < litCount) {
+            bulb.classList.add('lit');
+          } else {
+            bulb.classList.remove('lit');
+          }
+        });
+      };
+
+      const finish = () => {
+        clearInterval(timerId);
+        timerId = null;
+        running = false;
+        remainingSeconds = 0;
+        updateDisplay();
+        bulbs.forEach((b) => b.classList.add('lit'));
+        tree.classList.add('celebrate');
+        star.classList.add('glow');
+        messageBox.classList.add('show');
+        setStatus('Complete! Breathe and enjoy the lights.');
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+      };
+
+      const tick = () => {
+        if (remainingSeconds <= 0) {
+          finish();
+          return;
+        }
+        remainingSeconds -= 1;
+        updateDisplay();
+        updateLights();
+      };
+
+      const start = () => {
+        const minutes = parseFloat(minutesInput.value);
+        if (Number.isNaN(minutes) || minutes <= 0) {
+          setStatus('Enter a positive number of minutes.');
+          return;
+        }
+
+        if (!running) {
+          totalSeconds = Math.round(minutes * 60);
+          remainingSeconds = totalSeconds;
+          updateDisplay();
+          updateLights();
+          tree.classList.remove('celebrate');
+          star.classList.remove('glow');
+          messageBox.classList.remove('show');
+        }
+
+        clearInterval(timerId);
+        timerId = setInterval(tick, 1000);
+        running = true;
+        startBtn.disabled = true;
+        pauseBtn.disabled = false;
+        setStatus('Focus charging the city...');
+      };
+
+      const pause = () => {
+        if (!running) return;
+        clearInterval(timerId);
+        timerId = null;
+        running = false;
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+        setStatus('Paused — lights hold their glow.');
+      };
+
+      const reset = () => {
+        clearInterval(timerId);
+        timerId = null;
+        running = false;
+        const minutes = parseFloat(minutesInput.value) || 0;
+        totalSeconds = minutes > 0 ? Math.round(minutes * 60) : 0;
+        remainingSeconds = totalSeconds;
+        bulbs.forEach((b) => b.classList.remove('lit'));
+        tree.classList.remove('celebrate');
+        star.classList.remove('glow');
+        messageBox.classList.remove('show');
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+        updateDisplay();
+        setStatus('Reset — ready to focus again.');
+      };
+
+      startBtn.addEventListener('click', start);
+      pauseBtn.addEventListener('click', pause);
+      resetBtn.addEventListener('click', reset);
+      minutesInput.addEventListener('change', () => {
+        if (!running) {
+          reset();
+          setStatus('Duration updated — press Start Focus.');
+        }
+      });
+
+      // Initialize
+      reset();
+    })();
+  </script>
+</body>
+</html>
