@@ -680,7 +680,11 @@
         }
 
         const progress = Math.min(1, (totalSeconds - remainingSeconds) / totalSeconds);
-        const litCount = progress > 0 ? Math.max(1, Math.round(progress * bulbs.length)) : 0;
+        const baseLit = 1; // keep the first row softly on while focus charges up
+        const litCount = Math.min(
+          bulbs.length,
+          Math.max(baseLit, Math.round(progress * bulbs.length))
+        );
 
         bulbs.forEach((bulb, idx) => {
           if (idx < litCount) {
