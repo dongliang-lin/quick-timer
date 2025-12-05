@@ -8,6 +8,7 @@ handler = null
 latency = 0
 stop-by = null
 delay = 60000
+total-delay = delay
 audio-remind = null
 audio-end = null
 
@@ -35,6 +36,8 @@ adjust = (it,v) ->
   if it==0 => delay := v * 1000
   if delay <= 0 => delay := 0
   $ \#timer .text delay
+  total-delay := delay
+  update-incense delay
   resize!
 
 toggle = ->
@@ -65,6 +68,8 @@ reset = ->
   handler := null
   $ \#timer .text delay
   $ \#timer .css \color, \#fff
+  total-delay := delay
+  update-incense delay
   resize!
 
 
@@ -88,6 +93,7 @@ count = ->
     clearInterval handler
     handler := setInterval ( -> blink!), 500
   tm.text "#{diff}"
+  update-incense diff
   resize!
 
 run =  ->
@@ -95,9 +101,21 @@ run =  ->
     start := new Date!
     latency := 0
     is-blink := false
+    total-delay := delay
+    update-incense delay
   if handler => clearInterval handler
   if is-blink => handler := setInterval (-> blink!), 500
   else handler := setInterval (-> count!), 100
+
+update-incense = (remaining) ->
+  line = $ \#incense-line
+  return unless line.length
+  if total-delay <= 0
+    line.width '0%'
+    return
+  ratio = Math.max(remaining, 0) / total-delay
+  ratio <?= 1
+  line.width "#{ratio * 100}%"
 
 resize = ->
   tm = $ \#timer
@@ -116,4 +134,5 @@ window.onload = ->
   #audio-end := new-audio \audio/fire-alarm.mp3
   audio-remind := new-audio \audio/smb_warning.mp3
   audio-end := new-audio \audio/smb_mariodie.mp3
+  update-incense delay
 window.onresize = -> resize!
