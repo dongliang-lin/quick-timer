@@ -10,6 +10,8 @@ stop-by = null
 delay = 60000
 audio-remind = null
 audio-end = null
+dolphin = null
+ocean = null
 
 new-audio = (file) ->
   node = new Audio!
@@ -36,19 +38,23 @@ adjust = (it,v) ->
   if delay <= 0 => delay := 0
   $ \#timer .text delay
   resize!
+  reset-dolphin!
 
 toggle = ->
   is-run := !is-run
   $ \#toggle .text if is-run => "STOP" else "RUN"
-  if !is-run and handler => 
+  if !is-run and handler =>
     stop-by := new Date!
     clearInterval handler
     handler := null
     sound-toggle audio-end, false
     sound-toggle audio-remind, false
+    stop-swim!
   if stop-by =>
     latency := latency + (new Date!)getTime! - stop-by.getTime!
-  if is-run => run!
+  if is-run =>
+    start-swim!
+    run!
 
 reset = ->
   if delay == 0 => delay := 1000
@@ -66,6 +72,8 @@ reset = ->
   $ \#timer .text delay
   $ \#timer .css \color, \#fff
   resize!
+  stop-swim!
+  reset-dolphin!
 
 
 blink = ->
@@ -89,6 +97,7 @@ count = ->
     handler := setInterval ( -> blink!), 500
   tm.text "#{diff}"
   resize!
+  update-dolphin diff
 
 run =  ->
   if start == null =>
@@ -108,6 +117,31 @@ resize = ->
   tm.css \font-size, "#{1.5 * w/len}px"
   tm.css \line-height, "#{h}px"
 
+remaining-time = ->
+  if start? => start.getTime! - (new Date!)getTime! + delay + latency
+  else delay
+
+update-dolphin = (remaining = remaining-time!) ->
+  return unless dolphin?
+  total = Math.max delay, 1
+  progress = 1 - Math.max(Math.min(remaining / total, 1), 0)
+  width = $ window .width!
+  dolphin-width = dolphin.outerWidth!
+  start-pos = -dolphin-width
+  travel = width + dolphin-width * 2
+  offset = start-pos + progress * travel
+  dolphin.css \--swim-offset, "#{offset}px"
+
+reset-dolphin = -> update-dolphin delay
+
+start-swim = ->
+  ocean?.addClass \swimming
+  update-dolphin!
+
+stop-swim = ->
+  ocean?.removeClass \swimming
+  update-dolphin!
+
 
 window.onload = ->
   $ \#timer .text delay
@@ -116,4 +150,9 @@ window.onload = ->
   #audio-end := new-audio \audio/fire-alarm.mp3
   audio-remind := new-audio \audio/smb_warning.mp3
   audio-end := new-audio \audio/smb_mariodie.mp3
-window.onresize = -> resize!
+  dolphin := $ \#dolphin
+  ocean := $ \#ocean
+  reset-dolphin!
+window.onresize = ->
+  resize!
+  update-dolphin!
