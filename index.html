@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
+
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -395,9 +395,22 @@
 
     .light-row {
       display: flex;
-      justify-content: center;
-      gap: 12px;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 0 auto;
     }
+
+    /* 由上到下逐漸變寬，貼合樹形（三角形） */
+    .light-row:nth-child(1) { width: 26%; }
+    .light-row:nth-child(2) { width: 34%; }
+    .light-row:nth-child(3) { width: 44%; }
+    .light-row:nth-child(4) { width: 52%; }
+    /* 底部 1～4 層再加寬，讓最左與最右燈泡略微超出樹形 */
+    .light-row:nth-child(5) { width: 68%; }
+    .light-row:nth-child(6) { width: 76%; }
+    .light-row:nth-child(7) { width: 86%; }
+    .light-row:nth-child(8) { width: 96%; }
+
 
     .bulb {
       width: 14px;
@@ -572,18 +585,6 @@
               <span class="bulb" data-color="blue"></span>
               <span class="bulb" data-color="pink"></span>
               <span class="bulb" data-color="green"></span>
-              <span class="bulb" data-color="blue"></span>
-            </div>
-            <div class="light-row">
-              <span class="bulb" data-color="blue"></span>
-              <span class="bulb" data-color="pink"></span>
-              <span class="bulb" data-color="green"></span>
-              <span class="bulb" data-color="blue"></span>
-              <span class="bulb" data-color="pink"></span>
-              <span class="bulb" data-color="green"></span>
-              <span class="bulb" data-color="blue"></span>
-              <span class="bulb" data-color="pink"></span>
-              <span class="bulb" data-color="green"></span>
             </div>
             <div class="light-row">
               <span class="bulb" data-color="pink"></span>
@@ -594,8 +595,6 @@
               <span class="bulb" data-color="green"></span>
               <span class="bulb" data-color="pink"></span>
               <span class="bulb" data-color="blue"></span>
-              <span class="bulb" data-color="green"></span>
-              <span class="bulb" data-color="pink"></span>
             </div>
             <div class="light-row">
               <span class="bulb" data-color="green"></span>
@@ -606,24 +605,8 @@
               <span class="bulb" data-color="pink"></span>
               <span class="bulb" data-color="green"></span>
               <span class="bulb" data-color="blue"></span>
-              <span class="bulb" data-color="pink"></span>
-              <span class="bulb" data-color="green"></span>
-              <span class="bulb" data-color="blue"></span>
-            </div>
-            <div class="light-row">
-              <span class="bulb" data-color="pink"></span>
-              <span class="bulb" data-color="blue"></span>
-              <span class="bulb" data-color="green"></span>
-              <span class="bulb" data-color="pink"></span>
-              <span class="bulb" data-color="blue"></span>
-              <span class="bulb" data-color="green"></span>
-              <span class="bulb" data-color="pink"></span>
-              <span class="bulb" data-color="blue"></span>
-              <span class="bulb" data-color="green"></span>
-              <span class="bulb" data-color="pink"></span>
-              <span class="bulb" data-color="blue"></span>
-              <span class="bulb" data-color="green"></span>
-            </div>
+             </div>
+
           </div>
           <div class="trunk"></div>
           <div class="tree-shadow"></div>
@@ -647,6 +630,7 @@
       const star = document.getElementById('star');
       const messageBox = document.getElementById('messageBox');
       const rows = Array.from(document.querySelectorAll('.light-row'));
+      // 自下而上的點亮順序（不再之字形，只是由樹底一路亮到樹頂）
       const bulbs = rows
         .slice()
         .reverse()
@@ -680,7 +664,7 @@
         }
 
         const progress = Math.min(1, (totalSeconds - remainingSeconds) / totalSeconds);
-        const baseLit = 1; // keep the first row softly on while focus charges up
+        const baseLit = 1; // 至少保留一個燈泡微亮
         const litCount = Math.min(
           bulbs.length,
           Math.max(baseLit, Math.round(progress * bulbs.length))
