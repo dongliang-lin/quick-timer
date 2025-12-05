@@ -21,31 +21,6 @@ body {
   font-weight: 700;
   font-family: century gothic;
 }
-#ocean {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-#dolphin {
-  --swim-offset: -100px;
-  position: absolute;
-  bottom: 15%;
-  left: 0;
-  font-size: 64px;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.35);
-  transform: translateX(var(--swim-offset)) translateY(0);
-  animation: bob 1.8s ease-in-out infinite alternate;
-  transition: transform 0.12s linear;
-}
-@keyframes bob {
-  from {
-    transform: translateX(var(--swim-offset)) translateY(0);
-  }
-  to {
-    transform: translateX(var(--swim-offset)) translateY(-10px);
-  }
-}
 #hide,
 #toggle,
 #reset,
