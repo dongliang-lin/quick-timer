@@ -10,6 +10,7 @@ stop-by = null
 delay = 60000
 audio-remind = null
 audio-end = null
+dolphin = null
 
 new-audio = (file) ->
   node = new Audio!
@@ -36,6 +37,7 @@ adjust = (it,v) ->
   if delay <= 0 => delay := 0
   $ \#timer .text delay
   resize!
+  reset-dolphin!
 
 toggle = ->
   is-run := !is-run
@@ -66,6 +68,7 @@ reset = ->
   $ \#timer .text delay
   $ \#timer .css \color, \#fff
   resize!
+  reset-dolphin!
 
 
 blink = ->
@@ -89,6 +92,7 @@ count = ->
     handler := setInterval ( -> blink!), 500
   tm.text "#{diff}"
   resize!
+  update-dolphin diff
 
 run =  ->
   if start == null =>
@@ -108,6 +112,23 @@ resize = ->
   tm.css \font-size, "#{1.5 * w/len}px"
   tm.css \line-height, "#{h}px"
 
+remaining-time = ->
+  if start? => start.getTime! - (new Date!)getTime! + delay + latency
+  else delay
+
+update-dolphin = (remaining = remaining-time!) ->
+  return unless dolphin?
+  total = Math.max delay, 1
+  progress = 1 - Math.max(Math.min(remaining / total, 1), 0)
+  width = $ window .width!
+  dolphin-width = dolphin.outerWidth!
+  start-pos = -dolphin-width
+  travel = width + dolphin-width * 2
+  offset = start-pos + progress * travel
+  dolphin.css \--swim-offset, "#{offset}px"
+
+reset-dolphin = -> update-dolphin delay
+
 
 window.onload = ->
   $ \#timer .text delay
@@ -116,4 +137,8 @@ window.onload = ->
   #audio-end := new-audio \audio/fire-alarm.mp3
   audio-remind := new-audio \audio/smb_warning.mp3
   audio-end := new-audio \audio/smb_mariodie.mp3
-window.onresize = -> resize!
+  dolphin := $ \#dolphin
+  reset-dolphin!
+window.onresize = ->
+  resize!
+  update-dolphin!
